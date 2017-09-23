@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
+import {Layer, Line, Circle, Stage, Group} from 'react-konva';
 
-import BordersField from 'BordersField';
-import Moves from 'Moves';
-import FieldPoint from 'FieldPoint';
-import Ball from 'Ball';
+import {MAIN_COLOR, GATE_W, FIELD_W, FIELD_H, BORDER_POINTS, SPACE_BETWEEN_POINTS, STROKE_W, POINTS_W} from 'utils/constants';
 
 class Game extends Component {
     state = {
-        wSize: 11,
-        hSize: 9,
         fieldPoints: new Array(99).fill(0),
         cPoint: {
             x: 5,
@@ -17,10 +13,30 @@ class Game extends Component {
     }
 
     componentDidMount() {
-        this.enableNextMove(this.state.cPoint);
+        this.drawMoves([
+            {
+                player: 1,
+                from: [4, 4],
+                to: [3, 4]
+            },
+            {
+                player: 2,
+                from: [3, 4],
+                to: [4, 3]
+            }
+        ])
     }
 
-    enableNextMove(point) {
+    getFieldPoints() {
+        return this.state.fieldPoints.map((el, index) => {
+            const xpos = (index % POINTS_W) * SPACE_BETWEEN_POINTS + GATE_W,
+                  ypos = Math.floor(index / POINTS_W) * SPACE_BETWEEN_POINTS;
+
+            return <Circle key={index} radius={10} fill={MAIN_COLOR} x={xpos} y={ypos}/>
+        })
+    }
+
+    /*enableNextMove(point) {
         for (let angle = 0; angle < 2 * Math.PI; angle += Math.PI/4) {
             let xSign = Math.sign(Math.cos(angle) + 10 - 10),
                 ySign = Math.sign(Math.sin(angle) + 10 - 10),
@@ -31,6 +47,10 @@ class Game extends Component {
                 pointField.classList.add('enabled');
             }
         }
+    }*/
+
+    drawMoves(moves) {
+
     }
 
     onClickedPoint(target, index) {
@@ -54,22 +74,31 @@ class Game extends Component {
         ctx.stroke();
     }
 
-    render() {
-        const points = this.state.fieldPoints.map((el, index) =>
-            <FieldPoint key={index} index={index} clickedPoint={(target, index) => this.onClickedPoint(target, index)}></FieldPoint>
-        );
-        
+    onOverPoints(e) {
+        let circle = e.target;
+        circle.to({scaleX: 1.5, scaleY: 1.5, duration: 0.1});
+    }
+
+    onOutPoints(e) {
+        let circle = e.target;
+        circle.to({scaleX: 1, scaleY: 1, duration: 0.1});
+    }
+
+    render() {        
         return (
             /* this.props.match.params.opponent */
             <div className="game">
-                <div id="field" className="field">
-                    <BordersField></BordersField>
-                    <Moves></Moves>
-                    <div className="field-points">
-                        {points}
-                    </div>
-                    <Ball></Ball>
-                </div>
+                <Stage width={FIELD_W} height={FIELD_H}>
+                    <Layer>
+                        <Group>
+                            <Line points={BORDER_POINTS} stroke={MAIN_COLOR} strokeWidth={STROKE_W} lineCap='round' lineJoin='round'/>
+                            <Line points={[FIELD_W / 2, 0, FIELD_W / 2 , FIELD_H]} stroke={MAIN_COLOR} strokeWidth={STROKE_W} lineCap='round' lineJoin='round'/>
+                        </Group>
+                        <Group clip = {{x: GATE_W, y: 0, width: FIELD_W - 2 * GATE_W, height: FIELD_H}} onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)}>
+                            {this.getFieldPoints()}
+                        </Group>
+                    </Layer>
+                </Stage>
             </div>
         )
     }
