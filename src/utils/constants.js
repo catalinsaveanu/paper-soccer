@@ -1,6 +1,7 @@
 export const MAIN_COLOR = '#00ffff';
 export const PLAYER_COLOR = '#99fe00';
 export const OPPONENT_COLOR = '#ff0065';
+export const MOVES_COLOR = [PLAYER_COLOR, OPPONENT_COLOR];
 export const GATE_W = 60;
 export const FIELD_W = 820;
 export const FIELD_H = 560;

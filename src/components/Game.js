@@ -1,38 +1,85 @@
 import React, { Component } from 'react';
 import {Layer, Line, Circle, Stage, Group} from 'react-konva';
 
-import {MAIN_COLOR, GATE_W, FIELD_W, FIELD_H, BORDER_POINTS, SPACE_BETWEEN_POINTS, STROKE_W, POINTS_W} from 'utils/constants';
+import {MAIN_COLOR, GATE_W, FIELD_W, FIELD_H, BORDER_POINTS, SPACE_BETWEEN_POINTS, STROKE_W, POINTS_W, MOVES_COLOR} from 'utils/constants';
 
 class Game extends Component {
     state = {
-        fieldPoints: new Array(99).fill(0),
+        fieldPoints: new Array(99).fill(MAIN_COLOR),
+        fieldMoves: [],
         cPoint: {
             x: 5,
             y: 4
-        }
-    }
-
-    componentDidMount() {
-        this.drawMoves([
+        },
+        moves: [
+            {
+                player: 1,
+                from: [5, 4],
+                to: [4, 4]
+            },
+            {
+                player: 2,
+                from: [4, 4],
+                to: [5, 3]
+            },
+            {
+                player: 2,
+                from: [5, 3],
+                to: [6, 4]
+            },
+            {
+                player: 1,
+                from: [6, 4],
+                to: [5, 5]
+            },
+            {
+                player: 1,
+                from: [5, 5],
+                to: [4, 4]
+            },
             {
                 player: 1,
                 from: [4, 4],
                 to: [3, 4]
             },
-            {
-                player: 2,
-                from: [3, 4],
-                to: [4, 3]
-            }
-        ])
+        ]
+    }
+
+    componentDidMount() {
+        this.setState({
+            fieldMoves: this.state.moves.map((move, index) => {
+                const linePoints = [
+                    ...move.from.map(point => point * SPACE_BETWEEN_POINTS),
+                    ...move.to.map(point => point * SPACE_BETWEEN_POINTS)
+                ];
+
+                const fromIndex = move.from[1] * POINTS_W + move.from[0];
+                const toIndex = move.to[1] * POINTS_W + move.to[0];
+
+                this.changePointsColor(fromIndex, MOVES_COLOR[move.player - 1]);
+                this.changePointsColor(toIndex, MOVES_COLOR[move.player - 1]);
+        
+                return <Line key={`move-${index}`} points={linePoints} stroke={MOVES_COLOR[move.player - 1]} strokeWidth={STROKE_W}/>
+            })
+        });
+    }
+
+    changePointsColor(pointIndex, color) {
+        this.setState((prevState, props) => ({
+            fieldPoints: [
+                ...prevState.fieldPoints.slice(0, pointIndex),
+                color,
+                ...prevState.fieldPoints.slice(pointIndex + 1)
+            ]
+        }));
     }
 
     getFieldPoints() {
-        return this.state.fieldPoints.map((el, index) => {
-            const xpos = (index % POINTS_W) * SPACE_BETWEEN_POINTS + GATE_W,
+        return this.state.fieldPoints.map((color, index) => {
+            const xpos = (index % POINTS_W) * SPACE_BETWEEN_POINTS,
                   ypos = Math.floor(index / POINTS_W) * SPACE_BETWEEN_POINTS;
 
-            return <Circle key={index} radius={10} fill={MAIN_COLOR} x={xpos} y={ypos}/>
+            return <Circle key={`point-${index}`} radius={10} fill={color} x={xpos} y={ypos}/>
         })
     }
 
@@ -48,10 +95,6 @@ class Game extends Component {
             }
         }
     }*/
-
-    drawMoves(moves) {
-
-    }
 
     onClickedPoint(target, index) {
         if (!target.classList.contains('enabled')) return;
@@ -91,10 +134,13 @@ class Game extends Component {
                 <Stage width={FIELD_W} height={FIELD_H}>
                     <Layer>
                         <Group>
-                            <Line points={BORDER_POINTS} stroke={MAIN_COLOR} strokeWidth={STROKE_W} lineCap='round' lineJoin='round'/>
-                            <Line points={[FIELD_W / 2, 0, FIELD_W / 2 , FIELD_H]} stroke={MAIN_COLOR} strokeWidth={STROKE_W} lineCap='round' lineJoin='round'/>
+                            <Line points={BORDER_POINTS} stroke={MAIN_COLOR} strokeWidth={STROKE_W}/>
+                            <Line points={[FIELD_W / 2, 0, FIELD_W / 2 , FIELD_H]} stroke={MAIN_COLOR} strokeWidth={STROKE_W}/>
                         </Group>
-                        <Group clip = {{x: GATE_W, y: 0, width: FIELD_W - 2 * GATE_W, height: FIELD_H}} onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)}>
+                        <Group x={GATE_W}>
+                            {this.state.fieldMoves}
+                        </Group>                        
+                        <Group x={GATE_W} clip = {{x: 0, y: 0, width: FIELD_W - 2 * GATE_W, height: FIELD_H}} onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)}>
                             {this.getFieldPoints()}
                         </Group>
                     </Layer>
