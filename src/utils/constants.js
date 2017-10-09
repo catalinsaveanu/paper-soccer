@@ -3,12 +3,15 @@ export const PLAYER_COLOR = '#99fe00';
 export const OPPONENT_COLOR = '#ff0065';
 export const MOVES_COLOR = [PLAYER_COLOR, OPPONENT_COLOR];
 export const GATE_W = 60;
-export const FIELD_W = 820;
-export const FIELD_H = 560;
 export const SPACE_BETWEEN_POINTS = 70;
 export const STROKE_W = 4;
 export const POINTS_W = 11;
 export const POINTS_H = 9;
+export const FIELD_W = (POINTS_W - 1) * SPACE_BETWEEN_POINTS + 2 * GATE_W;
+export const FIELD_H = (POINTS_H - 1) * SPACE_BETWEEN_POINTS;
+export const TOTAL_POINTS = POINTS_W * POINTS_H;
+export const INF = Infinity;
+export const P_WEIGHT = 10000;
 
 export const BORDER_POINTS = [
     GATE_W, STROKE_W / 2, 
