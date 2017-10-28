@@ -24,3 +24,5 @@ body {height: 100%; padding: 0; margin: 0; background: #000f1b}
 .ball {position: absolute; left: 50%; top: 50%; margin-left: -1.5em; margin-top: -1.5em; border-radius: 50%; }
 .ball-bg {fill: #FFFFFF}
 .moves {position: absolute; left: 0; top: 0; right: 0; bottom: 0}
+.modal-overlay {position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0, 0.7); display: flex; justify-content: center; align-items: center}
+.winner-overlay {font-size: 5rem; font-weight: bold}

@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
-import {Layer, Line, Circle, Stage, Group} from 'react-konva';
+import {Layer, Line, Circle, Stage, Group, Text} from 'react-konva';
 
 import {MAIN_COLOR, GATE_W, FIELD_W, FIELD_H, BORDER_POINTS, SPACE_BETWEEN_POINTS, STROKE_W, POINTS_W, POINTS_H, MOVES_COLOR, INF, TOTAL_POINTS, P_WEIGHT} from 'utils/constants';
 
 class Game extends Component {
     state = {
         fieldMoves: [],
-        fieldPoints: new Array(99).fill(MAIN_COLOR)
+        fieldPoints: new Array(99).fill(MAIN_COLOR),
+        winner: ''
     }
 
     edgeMatrix = [];
@@ -16,8 +17,7 @@ class Game extends Component {
 
     initMoves() {
         let i = 0,
-            j = 0,
-            k = 0;
+            j = 0;
 
         for (i = 0; i < POINTS_H; i++) {
             this.vertexMatrix[i] = new Array(POINTS_W);
@@ -33,40 +33,28 @@ class Game extends Component {
             this.edgeMatrix[i][i] = 0;
         }
 
-        for (i = 1; i < POINTS_H - 1; i++) {
-            for (j = 1; j < POINTS_W - 1; j++) {
-                let nodeA = this.vertexMatrix[i][j],
-                    nodeB;
+        for (i = 0; i < POINTS_H; i++) {
+            for (j = 0; j < POINTS_W; j++) {
+                let vertexA = this.vertexMatrix[i][j],
+                    isBorderA = this.isBorder(vertexA);
 
-                /* top and bottom */
-                if (i === 1 || i === POINTS_H - 2) {
-                    for (k = -1; k <= 1; k++) {
-                        let direction = (i === 1) ? -1 : 1;
-                        nodeB = this.vertexMatrix[i + direction][j + k];
-                        this.edgeMatrix[nodeA][nodeB] = 0;
+                this.getVertexNeighbors(vertexA).forEach(vertexB => {
+                    let isBorderB = this.isBorder(vertexB);
+
+                    if (isBorderA && !isBorderB) {
+                        this.edgeMatrix[vertexA][vertexB] = 1;
+                    } else if (!isBorderA && isBorderB) {
+                        this.edgeMatrix[vertexA][vertexB] = 0;
+                    } else if (!isBorderA && !isBorderB) {
+                        this.edgeMatrix[vertexA][vertexB] = 1;
+                    } else if (isBorderA && isBorderB && Math.abs(vertexA - vertexB) >= 10) {
+                        this.edgeMatrix[vertexA][vertexB] = 0;
                     }
-                }
-
-                /* left and right */
-                if (j === 1 || j === POINTS_W - 2) {
-                    for (k = -1; k <= 1; k++) {
-                        let direction = (j === 1) ? -1 : 1;
-                        nodeB = this.vertexMatrix[i + k][j + direction];
-                        this.edgeMatrix[nodeA][nodeB] = 0;
-                    }                    
-                }
-
-                if (i > 1 && i < POINTS_H - 2 && j > 1 && j < POINTS_W - 2) {
-                    for (let angle = 0; angle < 2 * Math.PI; angle += Math.PI/4) {
-                        let xSign = Math.sign(Math.cos(angle) + 10 - 10),
-                            ySign = Math.sign(Math.sin(angle) + 10 - 10);
-
-                        nodeB = this.vertexMatrix[i + xSign][j + ySign];
-                        this.edgeMatrix[nodeA][nodeB] = this.edgeMatrix[nodeB][nodeA] = 1;
-                    }
-                }
+                });
             }
-        }
+        };
+
+        console.table(this.edgeMatrix);
     }
 
     getVertexIndices(vertex) {
@@ -74,6 +62,28 @@ class Game extends Component {
             i: Math.floor(vertex / POINTS_W),
             j: vertex % POINTS_W
         }
+    }
+
+    getVertexNeighbors(vertex) {
+        let neighbors = [],
+            vertexIndices = this.getVertexIndices(vertex);
+
+        for (let angle = 0; angle < 2 * Math.PI; angle += Math.PI/4) {
+            let xSign = Math.sign(Math.cos(angle) + 10 - 10),
+                ySign = Math.sign(Math.sin(angle) + 10 - 10);
+
+            if (vertexIndices.i + xSign > -1 && vertexIndices.i + xSign < POINTS_H && vertexIndices.j + ySign > -1 && vertexIndices.j + ySign < POINTS_W) {
+                neighbors.push(this.vertexMatrix[vertexIndices.i + xSign][vertexIndices.j + ySign]);
+            }
+        }
+
+        return neighbors;
+    }
+
+    getAvailableVertexNeighbors(vertex) {
+        this.getVertexNeighbors(vertex).filter(vertexNeighbor => {
+            return (this.edgeMatrix[vertex][vertexNeighbor] === 0 || this.edgeMatrix[vertex][vertexNeighbor] === 1)
+        })
     }
 
     getPointPosition(point) {
@@ -114,6 +124,12 @@ class Game extends Component {
         return moves;
     }
 
+    isBorder(vertex) {
+        let indices = this.getVertexIndices(vertex);
+        
+        return (indices.i === 0 || indices.j === 0);
+    }
+
     componentDidMount() {
         this.initMoves();
         this.setState({
@@ -138,15 +154,20 @@ class Game extends Component {
             const xpos = (index % POINTS_W) * SPACE_BETWEEN_POINTS,
                   ypos = Math.floor(index / POINTS_W) * SPACE_BETWEEN_POINTS;
 
-            return <Circle ref={`point-${index}`} id={`point-${index}`} key={`point-${index}`} radius={10} fill={this.state.fieldPoints[index]} x={xpos} y={ypos}/>
+            return (
+                <Group key={`group-${index}`}>
+                    <Text key={`text-${index}`} text={`${index}`} fill={`${MAIN_COLOR}`} fontSize={13} x={xpos - 7} y={ypos - 5} />
+                    <Circle ref={`point-${index}`} id={`point-${index}`} key={`point-${index}`} radius={10} fill={this.state.fieldPoints[index]} x={xpos} y={ypos} opacity={0.4}/>
+                </Group>
+            )
         })
     }
 
-    makeMove(from, to) {
-        let initValue = this.edgeMatrix[from][to];
+    makeMove(fromVertex, toVertex) {
+        let initValue = this.edgeMatrix[fromVertex][toVertex];
 
-        this.edgeMatrix[from][to] = this.edgeMatrix[to][from] = (this.turn + 1) * P_WEIGHT;
-        this.updateNeighbors(to);
+        this.edgeMatrix[fromVertex][toVertex] = this.edgeMatrix[toVertex][fromVertex] = (this.turn + 1) * P_WEIGHT;
+        this.updateNeighbors(toVertex);
 
         this.setState({
             fieldMoves: this.getMoves()
@@ -156,33 +177,59 @@ class Game extends Component {
             this.changeTurn();
         }
 
-        this.cVertex = to;
+        this.cVertex = toVertex;
+
+        this.checkIfGameIsOver(toVertex);
+
+        this.logNeighbors(toVertex);
+        console.table(this.edgeMatrix);
+    }
+
+    checkIfGameIsOver(vertex) {
+        let isGameOver = (vertex === 44 || vertex === 54),
+            winner = this.turn + 1;
+
+        if (!isGameOver) {
+            let weHaveMoves = this.getVertexNeighbors(vertex).some(vertexNeighbor => {
+                return this.weCanMove(vertex, vertexNeighbor);
+            });
+
+            if (!weHaveMoves) {
+                isGameOver = true;
+                winner = (this.turn + 1) % 2;
+            }   
+            
+        }
+
+        if (isGameOver) {
+            this.setState({
+                winner: `Player ${winner + 1} Wins!`
+            })
+        }
     }
 
     updateNeighbors(vertex) {
-        let vertexIndices = this.getVertexIndices(vertex);
+        this.getVertexNeighbors(vertex).forEach(vertexNeighbor => {
+            let isBorderNeighbor = this.isBorder(vertexNeighbor);
 
-        for (let angle = 0; angle < 2 * Math.PI; angle += Math.PI/4) {
-            let xSign = Math.sign(Math.cos(angle) + 10 - 10),
-                ySign = Math.sign(Math.sin(angle) + 10 - 10);
-
-            if ((vertexIndices.i + xSign) >= 0 && (vertexIndices.i + xSign) < POINTS_H) {
-                let vertex2 = this.vertexMatrix[vertexIndices.i + xSign][vertexIndices.j + ySign];
-                if (this.edgeMatrix[vertex][vertex2] === Infinity 
-                    && vertexIndices.i + xSign > 0 && vertexIndices.i + xSign < POINTS_H - 1 
-                    && vertexIndices.j + ySign > 0 && vertexIndices.j + ySign < POINTS_W - 1) {
-                    this.edgeMatrix[vertex][vertex2] = this.edgeMatrix[vertex2][vertex] = 1;
-                }
+            if (!isBorderNeighbor && this.edgeMatrix[vertex][vertexNeighbor] === 1 && this.wasVisited(vertexNeighbor)) {
+                this.edgeMatrix[vertex][vertexNeighbor] = this.edgeMatrix[vertexNeighbor][vertexNeighbor] = 0;
             }
-        }   
+        });
+    }
+
+    wasVisited(vertex) {
+        return this.getVertexNeighbors(vertex).some(vertexNeighbor => {
+            return this.edgeMatrix[vertex][vertexNeighbor] === P_WEIGHT || this.edgeMatrix[vertex][vertexNeighbor] === 2 * P_WEIGHT;
+        });
     }
 
     changeTurn() {
         this.turn = (this.turn + 1) % 2;
     }
 
-    weCanMove(from, to) {
-        return (from !== to && (this.edgeMatrix[from][to] === 0 || this.edgeMatrix[from][to] === 1));
+    weCanMove(fromVertex, toVertex) {
+        return (fromVertex !== toVertex && (this.edgeMatrix[fromVertex][toVertex] === 0 || this.edgeMatrix[fromVertex][toVertex] === 1));
     }
 
     onOverPoints(e) {
@@ -208,6 +255,15 @@ class Game extends Component {
         }
     }
 
+    logNeighbors(vertex) {
+        let sortedNeighbors = this.getVertexNeighbors(vertex).sort((a, b) => a-b).map(vertexNeighbor => {
+            return `${vertexNeighbor}->${this.edgeMatrix[vertex][vertexNeighbor]}`;
+        });
+
+        console.log('Vertex:', vertex);
+        console.log('Neighbors:' + sortedNeighbors.join(','));
+    }
+
     render() {        
         return (
             /* this.props.match.params.opponent */
@@ -217,7 +273,6 @@ class Game extends Component {
                         <Group>
                             <Line points={BORDER_POINTS} stroke={MAIN_COLOR} strokeWidth={STROKE_W}/>
                             <Line points={[FIELD_W / 2, 0, FIELD_W / 2 , FIELD_H]} stroke={MAIN_COLOR} strokeWidth={STROKE_W} opacity={0.3}/>
-                            <Circle ref={`point-1111`} radius={10} fill={MAIN_COLOR} x={20} y={20}/>
                         </Group>
                         <Group x={GATE_W}>
                             {this.state.fieldMoves}
@@ -228,6 +283,9 @@ class Game extends Component {
                         </Group>
                     </Layer>
                 </Stage>
+                <div className={this.state.winner !== '' ? 'show modal-overlay' : 'none'}>
+                    <div className="winner-overlay">{this.state.winner}</div>
+                </div>
             </div>
         )
     }
