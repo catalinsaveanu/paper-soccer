@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {Layer, Line, Circle, Stage, Group, Text} from 'react-konva';
 import Game from '../game/Game';
+import Ball from './Ball';
 
 import {MAIN_COLOR, GATE_W, FIELD_W, FIELD_H, BORDER_POINTS, SPACE_BETWEEN_POINTS, STROKE_W, POINTS_W , POINTS_H, MOVES_COLOR} from 'utils/constants';
 
@@ -129,6 +130,9 @@ class GameView extends Component {
                         <Group x={GATE_W} clip = {{x: 0, y: 0, width: FIELD_W - 2 * GATE_W, height: FIELD_H}} 
                             onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)} onClick = {this.onClickPoints.bind(this)}>
                             {this.getFieldPoints()}
+                        </Group>
+                        <Group x={GATE_W}>
+                            
                         </Group>
                     </Layer>
                 </Stage>

@@ -16,12 +16,8 @@ class Game {
         this.initMatrixes();
     }
 
-    static get P_WEIGHT() {
+    get playerWeight() {
         return P_WEIGHT;
-    }
-
-    static get INF() {
-        return INF;
     }
 
     get width() {
@@ -40,12 +36,32 @@ class Game {
         return this._playerTurn;
     }
 
+    set playerTurn(player) {
+        this._playerTurn = player;
+    }
+
     get winner() {
         return this._winner;
     }
 
     get isGameOver() {
         return this._isGameOver;
+    }
+
+    get edgeMatrix() {
+        return this._edgeMatrix;
+    }
+
+    get vertexMatrix() {
+        return this._vertexMatrix;
+    }
+
+    get cVertex() {
+        return this._cVertex;
+    }
+
+    set cVertex(vertex) {
+        this._cVertex = vertex;
     }
 
     
@@ -59,8 +75,6 @@ class Game {
                 this._vertexMatrix[i][j] = i * this.width + j;
             }
         }
-
-        console.table(this._vertexMatrix);
 
         for (i = 0; i < this.totalVertices; i++) {
             this._edgeMatrix[i] = new Array(this.totalVertices).fill(INF);
@@ -81,14 +95,15 @@ class Game {
                         this._edgeMatrix[vertexA][vertexB] = 0;
                     } else if (!isBorderA && !isBorderB) {
                         this._edgeMatrix[vertexA][vertexB] = 1;
-                    } else if (isBorderA && isBorderB && Math.abs(vertexA - vertexB) >= 10) {
-                        this._edgeMatrix[vertexA][vertexB] = 0;
+                    } else if (isBorderA && isBorderB) {
+                        let bIndices = this.getVertexIndices(vertexB);
+                        if (Math.abs(i - bIndices.i) === 1 && Math.abs(j - bIndices.j) === 1)  {
+                            this._edgeMatrix[vertexA][vertexB] = 0;
+                        }
                     }
                 });
             }
         };
-
-        console.table(this._edgeMatrix);
     }
 
     isPlayerMove(i, j) {
@@ -100,7 +115,7 @@ class Game {
     isBorder(vertex) {
         let indices = this.getVertexIndices(vertex);
 
-        return (indices.i === 0 || indices.j === 0);
+        return (indices.i === 0 || indices.j === 0 || indices.i === this.height - 1 || indices.j === this.width - 1);
     }
 
     getPlayerFromMove(i, j) {
@@ -139,7 +154,7 @@ class Game {
     }
 
     makeMoveTo(toVertex) {
-        this.makeMove(this._cVertex, toVertex);
+        this.makeMove(this.cVertex, toVertex);
     }
 
     makeMove(fromVertex, toVertex) {
@@ -148,20 +163,18 @@ class Game {
         this._edgeMatrix[fromVertex][toVertex] = this._edgeMatrix[toVertex][fromVertex] = (this.playerTurn + 1) * P_WEIGHT;
         this.updateNeighbors(toVertex);
         this.checkIfGameIsOver(toVertex);
-
+        
         if (initValue !== 0) {
             this.changeTurn();
         }
 
-        this._cVertex = toVertex;
+        this.cVertex = toVertex;
 
-        this.logNeighbors(toVertex);
+        //this.logNeighbors(toVertex);
     }
 
     checkIfGameIsOver(vertex) {
         let isGameOver = (vertex === 44 || vertex === 54);
-
-        this._winner = this.playerTurn + 1;
 
         if (!isGameOver) {
             let weHaveMoves = this.getVertexNeighbors(vertex).some(vertexNeighbor => {
@@ -170,11 +183,13 @@ class Game {
 
             if (!weHaveMoves) {
                 isGameOver = true;
-                this._winner = (this.playerTurn + 1) % 2;
+                this.changeTurn();
             }
         }
 
-        if (!isGameOver) {
+        if (isGameOver) {
+            this._winner = this.playerTurn + 1;
+        } else {
             this._winner = '';
         }
 
@@ -198,7 +213,7 @@ class Game {
     }
 
     changeTurn() {
-        this._playerTurn = (this._playerTurn + 1) % 2;
+        this.playerTurn = (this.playerTurn + 1) % 2;
     }
 
     weCanMove(fromVertex, toVertex) {
@@ -206,7 +221,7 @@ class Game {
     }
 
     weCanMoveTo(toVertex) {
-        return this.weCanMove(this._cVertex, toVertex);
+        return this.weCanMove(this.cVertex, toVertex);
     }
 
     logNeighbors(vertex) {
