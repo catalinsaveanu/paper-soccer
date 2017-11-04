@@ -9,7 +9,7 @@ import {BrowserRouter, Route, Switch} from 'react-router-dom';
 
 import './index.css';
 import Home from 'components/Home';
-import Game from 'components/Game';
+import GameView from 'components/GameView';
 
 
 
@@ -20,7 +20,7 @@ ReactDOM.render(
         <BrowserRouter>
             <div className="main">
                 <Switch>
-                    <Route path="/game/:opponent" component={Game}/>
+                    <Route path="/game/:opponent" component={GameView}/>
                     <Route path="/" component={Home}/>
                 </Switch>
             </div>

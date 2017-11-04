@@ -1,7 +1,7 @@
 const INF = Infinity,
       P_WEIGHT = 10000;
 
-class GameLogic {    
+class Game {    
     constructor(width, height) {
         this._width = width;
         this._height = height;
@@ -219,4 +219,4 @@ class GameLogic {
     }
 }
 
-export default GameLogic;
+export default Game;

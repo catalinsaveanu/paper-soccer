@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import {Layer, Line, Circle, Stage, Group, Text} from 'react-konva';
-import GameLogic from '../game/GameLogic';
+import Game from '../game/Game';
 
 import {MAIN_COLOR, GATE_W, FIELD_W, FIELD_H, BORDER_POINTS, SPACE_BETWEEN_POINTS, STROKE_W, POINTS_W , POINTS_H, MOVES_COLOR} from 'utils/constants';
 
-class Game extends Component {
+class GameView extends Component {
     constructor(props) {
         super(props);
 
-        this.gameLogic = new GameLogic(POINTS_W, POINTS_H);
+        this.game = new Game(POINTS_W, POINTS_H);
 
         this.state = {
             fieldMoves: this.getMoves(),
@@ -20,8 +20,8 @@ class Game extends Component {
 
     getPointPosition(point) {
         return {
-            x: point % this.gameLogic.width,
-            y: Math.floor(point / this.gameLogic.width)
+            x: point % this.game.width,
+            y: Math.floor(point / this.game.width)
         }
     }
 
@@ -37,11 +37,11 @@ class Game extends Component {
     getMoves() {
         var moves = [];
 
-        for (let i = 0; i < this.gameLogic.totalVertices; i++) {
-            for (let j = 0; j < this.gameLogic.totalVertices; j++) {
-                if (this.gameLogic.isPlayerMove(i, j)) {
+        for (let i = 0; i < this.game.totalVertices; i++) {
+            for (let j = 0; j < this.game.totalVertices; j++) {
+                if (this.game.isPlayerMove(i, j)) {
                     let linePoints = this.getPoints(i, j),
-                        color = MOVES_COLOR[this.gameLogic.getPlayerFromMove(i, j)];
+                        color = MOVES_COLOR[this.game.getPlayerFromMove(i, j)];
 
                     //this.changePointsColor(i, MOVES_COLOR[playerIndex]);
                     //this.changePointsColor(j, MOVES_COLOR[playerIndex]);
@@ -65,11 +65,11 @@ class Game extends Component {
     }
 
     getFieldPoints() {
-        let points = new Array(this.gameLogic.totalVertices).fill(1);
+        let points = new Array(this.game.totalVertices).fill(1);
 
         return points.map((value, index) => {
-            const xpos = (index % this.gameLogic.width) * SPACE_BETWEEN_POINTS,
-                  ypos = Math.floor(index / this.gameLogic.width) * SPACE_BETWEEN_POINTS;
+            const xpos = (index % this.game.width) * SPACE_BETWEEN_POINTS,
+                  ypos = Math.floor(index / this.game.width) * SPACE_BETWEEN_POINTS;
 
             return (
                 <Group key={`group-${index}`}>
@@ -84,7 +84,7 @@ class Game extends Component {
         let circle = e.target,
             vertex = parseInt(circle.id().substr(6), 10);
         
-        if (this.gameLogic.weCanMoveTo(vertex)) {
+        if (this.game.weCanMoveTo(vertex)) {
             circle.to({scaleX: 1.5, scaleY: 1.5, duration: 0.1});
         }
     }
@@ -98,16 +98,16 @@ class Game extends Component {
         let circle = e.target,
             vertex = parseInt(circle.id().substr(6), 10);
 
-        if (this.gameLogic.weCanMoveTo(vertex)) {
-            this.gameLogic.makeMoveTo(vertex);
+        if (this.game.weCanMoveTo(vertex)) {
+            this.game.makeMoveTo(vertex);
 
             this.setState({
                 fieldMoves: this.getMoves()
             });
 
-            if (this.gameLogic.isGameOver) {
+            if (this.game.isGameOver) {
                 this.setState({
-                    winner: `Player ${this.gameLogic.winner} Wins!`
+                    winner: `Player ${this.game.winner} Wins!`
                 });
             };
         }
@@ -140,4 +140,4 @@ class Game extends Component {
     }
 }
 
-export default Game;
+export default GameView;
