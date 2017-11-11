@@ -1,3 +1,5 @@
+import Dijkstra from './Dijkstra';
+
 const INF = Infinity,
       P_WEIGHT = 10000;
 
@@ -14,6 +16,7 @@ class Game {
         this._winner = '';
 
         this.initMatrixes();
+        this.dumbAI = new Dijkstra();
     }
 
     get playerWeight() {
@@ -56,6 +59,14 @@ class Game {
         return this._vertexMatrix;
     }
 
+    get firstPlayerGoalVertex() {
+        return 54;
+    }
+
+    get secondPlayerGoalVertex() {
+        return 44;
+    }
+
     get cVertex() {
         return this._cVertex;
     }
@@ -84,10 +95,12 @@ class Game {
         for (i = 0; i < this.height; i++) {
             for (j = 0; j < this.width; j++) {
                 let vertexA = this._vertexMatrix[i][j],
-                    isBorderA = this.isBorder(vertexA);
+                    isBorderA = this.isBorder(vertexA),
+                    neighbors = this.getVertexNeighbors(vertexA);
 
-                this.getVertexNeighbors(vertexA).forEach(vertexB => {
-                    let isBorderB = this.isBorder(vertexB);
+                for (let k = 0; k < neighbors.length; k++) {
+                    let vertexB = neighbors[k],
+                        isBorderB = this.isBorder(vertexB);
 
                     if (isBorderA && !isBorderB) {
                         this._edgeMatrix[vertexA][vertexB] = 1;
@@ -101,7 +114,7 @@ class Game {
                             this._edgeMatrix[vertexA][vertexB] = 0;
                         }
                     }
-                });
+                };
             }
         };
     }
@@ -173,8 +186,20 @@ class Game {
         //this.logNeighbors(toVertex);
     }
 
+    makeAIMove() {
+        let nextMove = this.dumbAI.constructPath(this.edgeMatrix, this.totalVertices, this.cVertex, this.secondPlayerGoalVertex);
+        let moveToVertex = nextMove.shift();
+
+        while (nextMove.length > 0 && this.edgeMatrix[this.cVertex][moveToVertex] === 0) {
+            this.makeMoveTo(moveToVertex);
+            moveToVertex = nextMove.shift();
+        }
+
+        this.makeMoveTo(moveToVertex);
+    }
+
     checkIfGameIsOver(vertex) {
-        let isGameOver = (vertex === 44 || vertex === 54);
+        let isGameOver = (vertex === this.secondPlayerGoalVertex || vertex === this.firstPlayerGoalVertex);
 
         if (!isGameOver) {
             let weHaveMoves = this.getVertexNeighbors(vertex).some(vertexNeighbor => {

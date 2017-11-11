@@ -1,19 +1,20 @@
 import React, { Component } from 'react';
 import {Layer, Line, Circle, Stage, Group, Text} from 'react-konva';
 import Game from '../game/Game';
-import Ball from './Ball';
+import Ball from '../components/Ball';
 
-import {MAIN_COLOR, GATE_W, FIELD_W, FIELD_H, BORDER_POINTS, SPACE_BETWEEN_POINTS, STROKE_W, POINTS_W , POINTS_H, MOVES_COLOR} from 'utils/constants';
+import * as constants from 'utils/constants';
 
 class GameView extends Component {
     constructor(props) {
         super(props);
 
-        this.game = new Game(POINTS_W, POINTS_H);
+        this.game = new Game(constants.POINTS_W, constants.POINTS_H);
 
         this.state = {
             fieldMoves: this.getMoves(),
-            fieldPoints: new Array(99).fill(MAIN_COLOR),
+            fieldPoints: new Array(99).fill(constants.MAIN_COLOR),
+            ballPosition: this.getBallPosition(this.game.cVertex),
             winner: ''
         }
     }
@@ -32,7 +33,7 @@ class GameView extends Component {
             ...Object.values(this.getPointPosition(nodeB))
         ];
         
-        return points.map(point => point * SPACE_BETWEEN_POINTS);
+        return points.map(point => point * constants.SPACE_BETWEEN_POINTS);
     }
 
     getMoves() {
@@ -42,12 +43,12 @@ class GameView extends Component {
             for (let j = 0; j < this.game.totalVertices; j++) {
                 if (this.game.isPlayerMove(i, j)) {
                     let linePoints = this.getPoints(i, j),
-                        color = MOVES_COLOR[this.game.getPlayerFromMove(i, j)];
+                        color = constants.MOVES_COLOR[this.game.getPlayerFromMove(i, j)];
 
                     //this.changePointsColor(i, MOVES_COLOR[playerIndex]);
                     //this.changePointsColor(j, MOVES_COLOR[playerIndex]);
         
-                    moves.push(<Line key={`move-${i}_${j}`} points={linePoints} stroke={color} strokeWidth={STROKE_W}/>);
+                    moves.push(<Line key={`move-${i}_${j}`} points={linePoints} stroke={color} strokeWidth={constants.STROKE_W}/>);
                 }
             }
         }
@@ -69,12 +70,12 @@ class GameView extends Component {
         let points = new Array(this.game.totalVertices).fill(1);
 
         return points.map((value, index) => {
-            const xpos = (index % this.game.width) * SPACE_BETWEEN_POINTS,
-                  ypos = Math.floor(index / this.game.width) * SPACE_BETWEEN_POINTS;
+            const xpos = (index % this.game.width) * constants.SPACE_BETWEEN_POINTS,
+                  ypos = Math.floor(index / this.game.width) * constants.SPACE_BETWEEN_POINTS;
 
             return (
                 <Group key={`group-${index}`}>
-                    <Text key={`text-${index}`} text={`${index}`} fill={`${MAIN_COLOR}`} fontSize={13} x={xpos - 7} y={ypos - 5} />
+                    <Text key={`text-${index}`} text={`${index}`} fill={`${constants.MAIN_COLOR}`} fontSize={13} x={xpos - 7} y={ypos - 5} />
                     <Circle ref={`point-${index}`} id={`point-${index}`} key={`point-${index}`} radius={10} fill={this.state.fieldPoints[index]} x={xpos} y={ypos} opacity={0.4}/>
                 </Group>
             )
@@ -103,7 +104,8 @@ class GameView extends Component {
             this.game.makeMoveTo(vertex);
 
             this.setState({
-                fieldMoves: this.getMoves()
+                fieldMoves: this.getMoves(),
+                ballPosition: this.getBallPosition(vertex)
             });
 
             if (this.game.isGameOver) {
@@ -111,6 +113,30 @@ class GameView extends Component {
                     winner: `Player ${this.game.winner} Wins!`
                 });
             };
+
+            if (this.game.playerTurn === 1) {
+                this.game.makeAIMove();
+                
+                this.setState({
+                    fieldMoves: this.getMoves(),
+                    ballPosition: this.getBallPosition(this.game.cVertex)
+                });
+
+                if (this.game.isGameOver) {
+                    this.setState({
+                        winner: `Player ${this.game.winner} Wins!`
+                    });
+                };
+            }
+        }
+    }
+
+    getBallPosition(vertex) {
+        let indices = this.game.getVertexIndices(vertex);
+
+        return {
+            x: indices.j * constants.SPACE_BETWEEN_POINTS,
+            y: indices.i * constants.SPACE_BETWEEN_POINTS
         }
     }
 
@@ -118,21 +144,21 @@ class GameView extends Component {
         return (
             /* this.props.match.params.opponent */
             <div className="game">
-                <Stage width={FIELD_W} height={FIELD_H}>
+                <Stage width={constants.FIELD_W} height={constants.FIELD_H}>
                     <Layer ref="layer">
                         <Group>
-                            <Line points={BORDER_POINTS} stroke={MAIN_COLOR} strokeWidth={STROKE_W}/>
-                            <Line points={[FIELD_W / 2, 0, FIELD_W / 2 , FIELD_H]} stroke={MAIN_COLOR} strokeWidth={STROKE_W} opacity={0.3}/>
+                            <Line points={constants.BORDER_POINTS} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W}/>
+                            <Line points={[constants.FIELD_W / 2, 0, constants.FIELD_W / 2 , constants.FIELD_H]} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W} opacity={0.3}/>
                         </Group>
-                        <Group x={GATE_W}>
+                        <Group x={constants.GATE_W}>
                             {this.state.fieldMoves}
                         </Group>                        
-                        <Group x={GATE_W} clip = {{x: 0, y: 0, width: FIELD_W - 2 * GATE_W, height: FIELD_H}} 
+                        <Group x={constants.GATE_W} clip = {{x: 0, y: 0, width: constants.FIELD_W - 2 * constants.GATE_W, height: constants.FIELD_H}} 
                             onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)} onClick = {this.onClickPoints.bind(this)}>
                             {this.getFieldPoints()}
                         </Group>
-                        <Group x={GATE_W}>
-                            
+                        <Group x={constants.GATE_W + this.state.ballPosition.x - constants.BALL_W / 2} y={this.state.ballPosition.y - constants.BALL_W / 2}>
+                            <Ball/>
                         </Group>
                     </Layer>
                 </Stage>
