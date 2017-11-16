@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import {Layer, Line, Circle, Stage, Group, Text} from 'react-konva';
 import Game from '../game/Game';
+import Multiplayer from '../game/Multiplayer';
 import Ball from '../components/Ball';
+import Header from './Header';
+
 
 import * as constants from 'utils/constants';
 
@@ -10,12 +13,15 @@ class GameView extends Component {
         super(props);
 
         this.game = new Game(constants.POINTS_W, constants.POINTS_H);
+        this.opponent = props.match.params.opponent;
+        this.multiplayer = new Multiplayer(props.location.hash.substr(1));
 
         this.state = {
             fieldMoves: this.getMoves(),
             fieldPoints: new Array(99).fill(constants.MAIN_COLOR),
             ballPosition: this.getBallPosition(this.game.cVertex),
-            winner: ''
+            winner: '',
+            
         }
     }
 
@@ -115,7 +121,8 @@ class GameView extends Component {
             };
 
             if (this.game.playerTurn === 1) {
-                this.game.makeAIMove();
+                this.multiplayer.sendMessage();
+                //this.game.makeAIMove();
                 
                 this.setState({
                     fieldMoves: this.getMoves(),
@@ -142,23 +149,25 @@ class GameView extends Component {
 
     render() {        
         return (
-            /* this.props.match.params.opponent */
             <div className="game">
-                <Stage width={constants.FIELD_W} height={constants.FIELD_H}>
+                <Header location={this.props.location}></Header>
+                <Stage width={constants.FIELD_W} height={constants.FIELD_H + 30} className="field">
                     <Layer ref="layer">
-                        <Group>
-                            <Line points={constants.BORDER_POINTS} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W}/>
-                            <Line points={[constants.FIELD_W / 2, 0, constants.FIELD_W / 2 , constants.FIELD_H]} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W} opacity={0.3}/>
-                        </Group>
-                        <Group x={constants.GATE_W}>
-                            {this.state.fieldMoves}
-                        </Group>                        
-                        <Group x={constants.GATE_W} clip = {{x: 0, y: 0, width: constants.FIELD_W - 2 * constants.GATE_W, height: constants.FIELD_H}} 
-                            onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)} onClick = {this.onClickPoints.bind(this)}>
-                            {this.getFieldPoints()}
-                        </Group>
-                        <Group x={constants.GATE_W + this.state.ballPosition.x - constants.BALL_W / 2} y={this.state.ballPosition.y - constants.BALL_W / 2}>
-                            <Ball/>
+                        <Group y={15}>
+                            <Group>
+                                <Line points={constants.BORDER_POINTS} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W}/>
+                                <Line points={[constants.FIELD_W / 2, 0, constants.FIELD_W / 2 , constants.FIELD_H]} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W} opacity={0.3}/>
+                            </Group>
+                            <Group x={constants.GATE_W}>
+                                {this.state.fieldMoves}
+                            </Group>                        
+                            <Group x={constants.GATE_W} 
+                                onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)} onClick = {this.onClickPoints.bind(this)}>
+                                {this.getFieldPoints()}
+                            </Group>
+                            <Group x={constants.GATE_W + this.state.ballPosition.x - constants.BALL_W / 2} y={this.state.ballPosition.y - constants.BALL_W / 2}>
+                                <Ball/>
+                            </Group>
                         </Group>
                     </Layer>
                 </Stage>

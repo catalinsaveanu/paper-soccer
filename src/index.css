@@ -11,8 +11,8 @@ body {height: 100%; padding: 0; margin: 0; background: #000f1b}
 .disabled {cursor: default; pointer-events: none; -moz-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;}
 .home {display: flex; flex-direction: column; height: 100%; justify-content: center; align-items: center}
 .main {height: 100%}
-.link-button {text-transform: uppercase; color: var(--main-color); line-height: 1.4em; padding:0.3em 1em; border: solid var(--main-color); border-width: 1px; position: relative; text-decoration: none; margin-bottom: 1em; font-size: 2em}
-.game {height: 100%;display: flex;align-items: center;justify-content: center;}
+.home .link-button {text-transform: uppercase; color: var(--main-color); line-height: 1.4em; padding:0.3em 1em; border:1px solid var(--main-color); position: relative; text-decoration: none; margin-bottom: 1em; font-size: 2em}
+.game {height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;}
 #field-container {width: 70%; position: relative}
 .field-points {display: grid; grid-template-columns: repeat(11, 9.7%); grid-template-rows: repeat(9, 12.1%); position: relative;justify-content: center; align-content: center; align-items: center; justify-items: center; height: 100%}
 .borders-field {position: absolute; left: 0; top: 0; width: 100%; height: 100%;}
@@ -26,3 +26,28 @@ body {height: 100%; padding: 0; margin: 0; background: #000f1b}
 .moves {position: absolute; left: 0; top: 0; right: 0; bottom: 0}
 .modal-overlay {position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0, 0.7); display: flex; justify-content: center; align-items: center}
 .winner-overlay {font-size: 5rem; font-weight: bold}
+.header {margin-bottom: 100px; display: flex; width: 100%}
+.flex-0 {flex: 0 1 auto}
+.flex-1 {flex: 1 0 0}
+.middle-border {position: relative}
+.middle-border::before {content: ''; display:block; position: absolute; left: 0; right: 0; top: 50%; border: 1px solid var(--main-color); opacity: 0.7}
+.player-name {text-transform: uppercase; line-height: 1.4em;padding: 0.3em 1em;border: 1px solid var(--main-color);position: relative;font-size: 1.4em; display: inline-block}
+.player-1 {color: var(--player-color); margin-right: -8px;;}
+.player-2 {color: var(--opponent-color); margin-left: -8px; position: relative; z-index: -1;}
+.vs {color: var(--main-color); border: 2px solid var(--main-color); border-radius: 50%; position: relative; font-size: 1.3em; display: inline-block; width: 50px; text-transform: uppercase; height: 50px; text-align: center; line-height: 50px; background: #000f1b}
+.header-btn,
+.header .link-button {color: var(--main-color); background: none; border: none; font-size: 1.2em; text-transform: uppercase; cursor: pointer; text-decoration: none}
+.header-btn:focus,
+.header .link-button:focus { outline: none}
+.konvajs-content {margin: 0 auto}
+.header-right {text-align: right; padding-top: 6px}
+.header-right .link-button:last-child {margin: 0 100px 0 10px}
+.help-modal {background: rgba(0,0,0, 0.7); position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center}
+.help {max-width: 50%; max-height: 80%; border: 1px solid var(--main-color); padding: 2.2em 2em 2em; display: flex; flex-direction: column; position: relative; background: #000f1b}
+.help-container {overflow-y: auto; flex: 1 1 auto; margin-top: 2em; border-top: 1px solid var(--main-color); padding-top: 1.5em}
+.help-title {display: flex; align-items: center}
+.help-title h1 {margin: 0; text-transform: uppercase; padding-top: 0.2em}
+.help-container h2 {margin: 1.5em 0 1em}
+.close-button {font-weight: bold; color: var(--main-color); border: none; background: none; cursor: pointer; border: 1px solid var(--main-color); font-size: 1em; height: 3em}
+.close-button:focus {outline: none;}
+p {line-height: 1.4}
