@@ -24,4 +24,10 @@ Removes this tool and copies build dependencies, configuration files and scripts
 
     npm run eject
 
-For detailed explanation on how things work, checkout the [guide](https://github.com/facebookincubator/create-react-app) .
+For detailed explanation on how things work, checkout the [guide](https://github.com/facebookincubator/create-react-app).
+
+## Play the Game
+
+If you want to play the game, just follow the link:
+
+    http://papersoccer.herokuapp.com
