@@ -5,14 +5,12 @@
   "dependencies": {
     "konva": "^1.6.8",
     "peerjs": "^0.3.14",
-    "react": "^15.6.1",
+    "react": "^15.6.2",
+    "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^15.6.1",
     "react-konva": "^1.1.4",
-    "react-redux": "^5.0.6",
     "react-router-dom": "^4.2.2",
-    "react-scripts": "1.0.13",
-    "redux": "^3.7.2",
-    "redux-promise": "^0.5.3"
+    "react-scripts": "1.0.13"
   },
   "scripts": {
     "start": "NODE_PATH=src:src/components:src/containers:src/actions:src/reducers react-scripts start",
@@ -20,7 +18,5 @@
     "test": "NODE_PATH=src react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "devDependencies": {
-    "redux-devtools": "^3.4.0"
-  }
+  "devDependencies": {}
 }

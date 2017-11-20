@@ -4,24 +4,31 @@ import Game from '../game/Game';
 import Multiplayer from '../game/Multiplayer';
 import Ball from '../components/Ball';
 import Header from './Header';
+import LinkButton from 'common/LinkButton';
 
 
 import * as constants from 'utils/constants';
+import { setTimeout } from 'timers';
 
 class GameView extends Component {
     constructor(props) {
         super(props);
 
-        this.game = new Game(constants.POINTS_W, constants.POINTS_H);
+        const opponentId = props.location.hash.substr(1);
+
         this.opponent = props.match.params.opponent;
-        this.multiplayer = new Multiplayer(props.location.hash.substr(1));
+        this.player = (opponentId === '' ? 0 : 1);
+        this.movesTimeout = 0;
+        this.game = new Game(constants.POINTS_W, constants.POINTS_H);
 
         this.state = {
             fieldMoves: this.getMoves(),
             fieldPoints: new Array(99).fill(constants.MAIN_COLOR),
             ballPosition: this.getBallPosition(this.game.cVertex),
             winner: '',
-            
+            opponentId: opponentId,
+            cTurn: 0,
+            moveToSend: null
         }
     }
 
@@ -92,7 +99,7 @@ class GameView extends Component {
         let circle = e.target,
             vertex = parseInt(circle.id().substr(6), 10);
         
-        if (this.game.weCanMoveTo(vertex)) {
+        if (this.game.weCanMoveTo(vertex) && this.player === this.game.playerTurn) {
             circle.to({scaleX: 1.5, scaleY: 1.5, duration: 0.1});
         }
     }
@@ -106,36 +113,55 @@ class GameView extends Component {
         let circle = e.target,
             vertex = parseInt(circle.id().substr(6), 10);
 
-        if (this.game.weCanMoveTo(vertex)) {
-            this.game.makeMoveTo(vertex);
+        if (this.game.weCanMoveTo(vertex) && this.player === this.game.playerTurn) {
+            this.makeMoveTo(vertex);
 
-            this.setState({
-                fieldMoves: this.getMoves(),
-                ballPosition: this.getBallPosition(vertex)
-            });
-
-            if (this.game.isGameOver) {
+            if (this.opponent === 'human') {
                 this.setState({
-                    winner: `Player ${this.game.winner} Wins!`
+                    moveToSend: vertex
                 });
-            };
+            }
 
-            if (this.game.playerTurn === 1) {
-                this.multiplayer.sendMessage();
-                //this.game.makeAIMove();
-                
-                this.setState({
-                    fieldMoves: this.getMoves(),
-                    ballPosition: this.getBallPosition(this.game.cVertex)
-                });
-
-                if (this.game.isGameOver) {
-                    this.setState({
-                        winner: `Player ${this.game.winner} Wins!`
-                    });
-                };
+            if (this.player !== this.game.playerTurn) {
+                this.opponentTurn();
             }
         }
+    }
+
+    opponentTurn() {
+        if (this.opponent === 'dumb-ai') {
+            this.movesTimeout = setTimeout(this.showMoves.bind(this, this.game.getAIMoves()), 100);
+        }
+    }
+
+    makeMoveTo(vertex) {
+        this.game.makeMoveTo(vertex);
+
+        this.setState({
+            fieldMoves: this.getMoves(),
+            ballPosition: this.getBallPosition(vertex),
+            cTurn: this.game.playerTurn
+        });
+
+        if (this.game.isGameOver) {
+            this.setState({
+                winner: `Player ${this.game.winner} Wins!`
+            });
+        };
+    }
+
+    onReceivedMove(move) {
+        this.makeMoveTo(move);
+    }
+
+    showMoves(moves) {
+        let moveToVertex = moves.shift();
+
+        if (moves.length > 0 && this.game.edgeMatrix[this.game.cVertex][moveToVertex] === 0) {
+            setTimeout(this.showMoves.bind(this, moves), 100);
+        }
+
+        this.makeMoveTo(moveToVertex);
     }
 
     getBallPosition(vertex) {
@@ -147,10 +173,12 @@ class GameView extends Component {
         }
     }
 
-    render() {        
+    render() {
+        let multiplayer = (this.opponent === 'human' ? <Multiplayer opponentId={this.state.opponentId} moveToSend={this.state.moveToSend} onReceivedMove={move => this.onReceivedMove(move)}/> : '');
+        
         return (
             <div className="game">
-                <Header location={this.props.location}></Header>
+                <Header location={this.props.location} cTurn={this.state.cTurn}></Header>
                 <Stage width={constants.FIELD_W} height={constants.FIELD_H + 30} className="field">
                     <Layer ref="layer">
                         <Group y={15}>
@@ -173,7 +201,9 @@ class GameView extends Component {
                 </Stage>
                 <div className={this.state.winner !== '' ? 'show modal-overlay' : 'none'}>
                     <div className="winner-overlay">{this.state.winner}</div>
+                    <LinkButton url="/">Back to Menu</LinkButton>
                 </div>
+                {multiplayer}
             </div>
         )
     }

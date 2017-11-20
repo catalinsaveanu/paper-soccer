@@ -60,11 +60,11 @@ class Game {
     }
 
     get firstPlayerGoalVertex() {
-        return 54;
+        return Math.floor(this.height / 2) * this.width + this.width - 1;
     }
 
     get secondPlayerGoalVertex() {
-        return 44;
+        return Math.floor(this.height / 2) * this.width;
     }
 
     get cVertex() {
@@ -126,6 +126,10 @@ class Game {
     }
 
     isBorder(vertex) {
+        if (vertex === this.firstPlayerGoalVertex || vertex === this.secondPlayerGoalVertex) {
+            return false;
+        }
+
         let indices = this.getVertexIndices(vertex);
 
         return (indices.i === 0 || indices.j === 0 || indices.i === this.height - 1 || indices.j === this.width - 1);
@@ -186,16 +190,12 @@ class Game {
         //this.logNeighbors(toVertex);
     }
 
+    getAIMoves() {
+        return this.dumbAI.constructPath(this.edgeMatrix, this.totalVertices, this.cVertex, this.secondPlayerGoalVertex);
+    }
+
     makeAIMove() {
-        let nextMove = this.dumbAI.constructPath(this.edgeMatrix, this.totalVertices, this.cVertex, this.secondPlayerGoalVertex);
-        let moveToVertex = nextMove.shift();
-
-        while (nextMove.length > 0 && this.edgeMatrix[this.cVertex][moveToVertex] === 0) {
-            this.makeMoveTo(moveToVertex);
-            moveToVertex = nextMove.shift();
-        }
-
-        this.makeMoveTo(moveToVertex);
+        
     }
 
     checkIfGameIsOver(vertex) {
