@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Layer, Line, Circle, Stage, Group, Text} from 'react-konva';
+import {Layer, Line, Circle, Stage, Group} from 'react-konva';
 import Game from '../game/Game';
 import Multiplayer from '../game/Multiplayer';
 import Ball from '../components/Ball';
@@ -88,8 +88,8 @@ class GameView extends Component {
 
             return (
                 <Group key={`group-${index}`}>
-                    <Text key={`text-${index}`} text={`${index}`} fill={`${constants.MAIN_COLOR}`} fontSize={13} x={xpos - 7} y={ypos - 5} />
-                    <Circle ref={`point-${index}`} id={`point-${index}`} key={`point-${index}`} radius={10} fill={this.state.fieldPoints[index]} x={xpos} y={ypos} opacity={0.4}/>
+                    {/* <Text key={`text-${index}`} text={`${index}`} fill={`${constants.MAIN_COLOR}`} fontSize={13} x={xpos - 7} y={ypos - 5} /> */}
+                    <Circle ref={`point-${index}`} id={`point-${index}`} key={`point-${index}`} radius={10} fill={this.state.fieldPoints[index]} x={xpos} y={ypos}/>
                 </Group>
             )
         })
@@ -130,7 +130,7 @@ class GameView extends Component {
 
     opponentTurn() {
         if (this.opponent === 'dumb-ai') {
-            this.movesTimeout = setTimeout(this.showMoves.bind(this, this.game.getAIMoves()), 100);
+            this.movesTimeout = setTimeout(this.showMoves.bind(this, this.game.getAIMoves()), 200);
         }
     }
 
@@ -158,7 +158,7 @@ class GameView extends Component {
         let moveToVertex = moves.shift();
 
         if (moves.length > 0 && this.game.edgeMatrix[this.game.cVertex][moveToVertex] === 0) {
-            setTimeout(this.showMoves.bind(this, moves), 100);
+            setTimeout(this.showMoves.bind(this, moves), 200);
         }
 
         this.makeMoveTo(moveToVertex);
