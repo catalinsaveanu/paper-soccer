@@ -1,5 +1,5 @@
 import React from 'react';
-import LinkButton from 'common/LinkButton';
+import LinkButton from './common/LinkButton';
 
 const Home = () => {
     return (

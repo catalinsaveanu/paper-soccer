@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import LinkButton from 'common/LinkButton';
+import LinkButton from './common/LinkButton';
 
 class Header extends PureComponent {
     getHelpRoute() {

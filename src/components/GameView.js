@@ -4,10 +4,10 @@ import Game from '../game/Game';
 import Multiplayer from '../game/Multiplayer';
 import Ball from '../components/Ball';
 import Header from './Header';
-import LinkButton from 'common/LinkButton';
+import LinkButton from './common/LinkButton';
 
 
-import * as constants from 'utils/constants';
+import * as constants from '../utils/constants';
 import { setTimeout } from 'timers';
 
 class GameView extends Component {
