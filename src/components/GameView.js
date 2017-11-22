@@ -16,8 +16,6 @@ class GameView extends Component {
 
         const opponentId = props.location.hash.substr(1);
 
-        this.opponent = props.match.params.opponent;
-        this.player = (opponentId === '' ? 0 : 1);
         this.movesTimeout = 0;
         this.game = new Game(constants.POINTS_W, constants.POINTS_H);
 
@@ -27,7 +25,9 @@ class GameView extends Component {
             ballPosition: this.getBallPosition(this.game.cVertex),
             winner: '',
             opponentId: opponentId,
+            opponent: props.match.params.opponent,
             cTurn: 0,
+            player: (opponentId === '' ? 0 : 1),
             moveToSend: null
         }
     }
@@ -99,7 +99,7 @@ class GameView extends Component {
         let circle = e.target,
             vertex = parseInt(circle.id().substr(6), 10);
         
-        if (this.game.weCanMoveTo(vertex) && this.player === this.game.playerTurn) {
+        if (this.game.weCanMoveTo(vertex) && this.state.player === this.game.playerTurn) {
             circle.to({scaleX: 1.5, scaleY: 1.5, duration: 0.1});
         }
     }
@@ -113,23 +113,23 @@ class GameView extends Component {
         let circle = e.target,
             vertex = parseInt(circle.id().substr(6), 10);
 
-        if (this.game.weCanMoveTo(vertex) && this.player === this.game.playerTurn) {
+        if (this.game.weCanMoveTo(vertex) && this.state.player === this.game.playerTurn) {
             this.makeMoveTo(vertex);
 
-            if (this.opponent === 'human') {
+            if (this.state.opponent === 'human') {
                 this.setState({
                     moveToSend: vertex
                 });
             }
 
-            if (this.player !== this.game.playerTurn) {
+            if (this.state.player !== this.game.playerTurn) {
                 this.opponentTurn();
             }
         }
     }
 
     opponentTurn() {
-        if (this.opponent === 'dumb-ai') {
+        if (this.state.opponent === 'dumb-ai') {
             this.movesTimeout = setTimeout(this.showMoves.bind(this, this.game.getAIMoves()), 200);
         }
     }
@@ -144,8 +144,18 @@ class GameView extends Component {
         });
 
         if (this.game.isGameOver) {
+            let winnerMsg = '';
+            
+            if (this.game.winner === this.state.player) {
+                winnerMsg = 'You Win!';
+            } else if (this.opponent === 'human') {
+                winnerMsg = 'Opponent Wins!'
+            } else {
+                winnerMsg = 'Computer Wins!';
+            }
+
             this.setState({
-                winner: `Player ${this.game.winner} Wins!`
+                winner: `${winnerMsg}`
             });
         };
     }
@@ -173,12 +183,36 @@ class GameView extends Component {
         }
     }
 
+    onClickRestart() {
+        if (this.opponent === 'human') {
+
+        } else {
+            this.restartGame();
+        }
+    }
+
+    restartGame() {
+        this.game.restart();
+
+        this.movesTimeout = 0;
+        this.game = new Game(constants.POINTS_W, constants.POINTS_H);
+
+        this.setState({
+            fieldMoves: this.getMoves(),
+            fieldPoints: new Array(99).fill(constants.MAIN_COLOR),
+            ballPosition: this.getBallPosition(this.game.cVertex),
+            winner: '',
+            cTurn: 0,
+            moveToSend: null
+        });
+    }
+
     render() {
-        let multiplayer = (this.opponent === 'human' ? <Multiplayer opponentId={this.state.opponentId} moveToSend={this.state.moveToSend} onReceivedMove={move => this.onReceivedMove(move)}/> : '');
+        let multiplayer = (this.state.opponent === 'human' ? <Multiplayer opponentId={this.state.opponentId} moveToSend={this.state.moveToSend} onReceivedMove={move => this.onReceivedMove(move)}/> : '');
         
         return (
             <div className="game">
-                <Header location={this.props.location} cTurn={this.state.cTurn}></Header>
+                <Header location={this.props.location} cTurn={this.state.cTurn} opponent={this.state.opponent} player={this.state.player}></Header>
                 <Stage width={constants.FIELD_W} height={constants.FIELD_H + 30} className="field">
                     <Layer ref="layer">
                         <Group y={15}>
@@ -202,6 +236,7 @@ class GameView extends Component {
                 <div className={this.state.winner !== '' ? 'show modal-overlay' : 'none'}>
                     <div className="winner-overlay">{this.state.winner}</div>
                     <LinkButton url="/">Back to Menu</LinkButton>
+                    <button onClick={this.onClickRestart.bind(this)} className="link-button">Restart</button>
                 </div>
                 {multiplayer}
             </div>

@@ -181,7 +181,7 @@ class Game {
         this.updateNeighbors(toVertex);
         this.checkIfGameIsOver(toVertex);
         
-        if (initValue !== 0) {
+        if (initValue !== 0 && !this.isGameOver) {
             this.changeTurn();
         }
 
@@ -192,10 +192,6 @@ class Game {
 
     getAIMoves() {
         return this.dumbAI.constructPath(this.edgeMatrix, this.totalVertices, this.cVertex, this.secondPlayerGoalVertex);
-    }
-
-    makeAIMove() {
-        
     }
 
     checkIfGameIsOver(vertex) {
@@ -213,7 +209,7 @@ class Game {
         }
 
         if (isGameOver) {
-            this._winner = this.playerTurn + 1;
+            this._winner = this.playerTurn;
         } else {
             this._winner = '';
         }
@@ -247,6 +243,17 @@ class Game {
 
     weCanMoveTo(toVertex) {
         return this.weCanMove(this.cVertex, toVertex);
+    }
+
+    restart() {
+        this._edgeMatrix = [];
+        this._vertexMatrix = [];
+        this._playerTurn = 0;
+        this._cVertex = (this._totalVertices - 1) / 2;
+        this._isGameOver = false;
+        this._winner = '';
+
+        this.initMatrixes();        
     }
 
     logNeighbors(vertex) {

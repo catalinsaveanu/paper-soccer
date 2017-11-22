@@ -14,7 +14,9 @@ body {height: 100%; padding: 0; margin: 0; background: #000f1b}
 .home .link-button,
 .modal-overlay .link-button,
 .border-button {text-transform: uppercase; color: var(--main-color); line-height: 1.4em; padding:0.3em 1em; border:1px solid var(--main-color); position: relative; text-decoration: none; margin-bottom: 1em; font-size: 2em}
-.modal-overlay .link-button {margin-top: 2em; background: #000f1b; text-transform: none}
+.modal-overlay .link-button {margin: 2em 0 0; background: #000f1b; text-transform: none; cursor: pointer}
+.modal-overlay .link-button:hover,
+.modal-overlay .link-button:focus {background: #000f1b; outline: none}
 .border-button {background: #000f1b; font-size: 1rem; text-transform: none; cursor: pointer}
 .border-button:hover,
 .border-button:focus {background: #002f50; outline: none}
@@ -60,9 +62,9 @@ transition: all 0.3s ease-out;}
 .help-container {overflow-y: auto; flex: 1 1 auto; margin-top: 2em; border-top: 1px solid var(--main-color); padding-top: 1.5em}
 .help-title {display: flex; align-items: center}
 .help-title h1 {margin: 0; text-transform: uppercase; padding-top: 0.2em}
-.help-container h2 {margin: 1.5em 0 1em}
+.help-container h2 {margin: 1.5rem 0 1rem; font-size: 1.7rem}
+.help-container p {line-height: 1.6rem; font-size: 1.1rem}
 .close-button {font-weight: bold; color: var(--main-color); border: none; background: none; cursor: pointer; border: 1px solid var(--main-color); font-size: 1em; height: 3em}
 .close-button:focus {outline: none;}
-p {line-height: 1.4}
 .game-link-msg {font-size: 2.5rem}
 .game-link {font-size: 1.5rem}
