@@ -148,7 +148,7 @@ class GameView extends Component {
             
             if (this.game.winner === this.state.player) {
                 winnerMsg = 'You Win!';
-            } else if (this.opponent === 'human') {
+            } else if (this.state.opponent === 'human') {
                 winnerMsg = 'Opponent Wins!'
             } else {
                 winnerMsg = 'Computer Wins!';
@@ -161,6 +161,18 @@ class GameView extends Component {
     }
 
     onReceivedMove(move) {
+        if (move === 'restart') {
+            if (this.state.moveToSend !== 'restart') {
+                this.setState({
+                    moveToSend: 'restart'
+                })
+            }
+
+            this.restartGame();
+
+            return;
+        }
+
         this.makeMoveTo(move);
     }
 
@@ -183,9 +195,11 @@ class GameView extends Component {
         }
     }
 
-    onClickRestart() {
-        if (this.opponent === 'human') {
-
+    onClickRematch() {
+        if (this.state.opponent === 'human') {
+            this.setState({
+                moveToSend: 'restart'
+            })
         } else {
             this.restartGame();
         }
@@ -236,7 +250,7 @@ class GameView extends Component {
                 <div className={this.state.winner !== '' ? 'show modal-overlay' : 'none'}>
                     <div className="winner-overlay">{this.state.winner}</div>
                     <LinkButton url="/">Back to Menu</LinkButton>
-                    <button onClick={this.onClickRestart.bind(this)} className="link-button">Restart</button>
+                    <button onClick={this.onClickRematch.bind(this)} className="link-button">Rematch</button>
                 </div>
                 {multiplayer}
             </div>

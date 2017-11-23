@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import Peer from 'peerjs';
+import {Link} from 'react-router-dom';
 
 class Multiplayer extends Component {
     constructor(props) {
@@ -77,6 +78,8 @@ class Multiplayer extends Component {
                         <button className="border-button">Copy to clipboard</button>
                     </CopyToClipboard>
                 </div>
+                <h3>or</h3>
+                <Link to="/" className="border-button">Back to Menu</Link>
             </div>
         )
     }
