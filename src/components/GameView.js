@@ -122,7 +122,7 @@ class GameView extends Component {
                 });
             }
 
-            if (this.state.player !== this.game.playerTurn) {
+            if (this.state.player !== this.game.playerTurn && !this.game.isGameOver) {
                 this.opponentTurn();
             }
         }
@@ -136,6 +136,9 @@ class GameView extends Component {
 
     makeMoveTo(vertex) {
         this.game.makeMoveTo(vertex);
+
+        var audio = new Audio('http://localhost:3000/sounds/ball_bounce.mp3');
+        audio.play();
 
         this.setState({
             fieldMoves: this.getMoves(),
@@ -252,7 +255,7 @@ class GameView extends Component {
                     <LinkButton url="/">Back to Menu</LinkButton>
                     <button onClick={this.onClickRematch.bind(this)} className="link-button">Rematch</button>
                 </div>
-                {multiplayer}
+                {multiplayer}          
             </div>
         )
     }

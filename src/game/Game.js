@@ -209,6 +209,11 @@ class Game {
         }
 
         if (isGameOver) {
+            if ((vertex === this.secondPlayerGoalVertex && this.playerTurn === 0) ||
+                (vertex === this.firstPlayerGoalVertex && this.playerTurn === 1)) {
+                    this.changeTurn();
+                }
+                
             this._winner = this.playerTurn;
         } else {
             this._winner = '';

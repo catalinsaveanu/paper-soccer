@@ -1,6 +1,6 @@
-export const MAIN_COLOR = '#53defb';
-export const PLAYER_COLOR = '#99fe00';
-export const OPPONENT_COLOR = '#ff0065';
+export const MAIN_COLOR = '#FFFFE8';
+export const PLAYER_COLOR = '#04A77A';
+export const OPPONENT_COLOR = '#F67300';
 export const MOVES_COLOR = [PLAYER_COLOR, OPPONENT_COLOR];
 export const GATE_W = 60;
 export const BALL_W = 32;
