@@ -18,6 +18,7 @@ class GameView extends Component {
 
         this.movesTimeout = 0;
         this.game = new Game(constants.POINTS_W, constants.POINTS_H);
+        this.finishAudio = new Audio('/sounds/football_crowd.mp3');
 
         this.state = {
             fieldMoves: this.getMoves(),
@@ -137,8 +138,7 @@ class GameView extends Component {
     makeMoveTo(vertex) {
         this.game.makeMoveTo(vertex);
 
-        var audio = new Audio('http://localhost:3000/sounds/ball_bounce.mp3');
-        audio.play();
+        new Audio('/sounds/ball_bounce.mp3').play();
 
         this.setState({
             fieldMoves: this.getMoves(),
@@ -160,6 +160,8 @@ class GameView extends Component {
             this.setState({
                 winner: `${winnerMsg}`
             });
+
+            this.finishAudio.play();
         };
     }
 
@@ -199,6 +201,8 @@ class GameView extends Component {
     }
 
     onClickRematch() {
+        this.stopFinishSound();
+        
         if (this.state.opponent === 'human') {
             this.setState({
                 moveToSend: 'restart'
@@ -222,6 +226,11 @@ class GameView extends Component {
             cTurn: 0,
             moveToSend: null
         });
+    }
+
+    stopFinishSound() {
+        this.finishAudio.pause();
+        this.finishAudio.currentTime = 0;
     }
 
     render() {
@@ -252,7 +261,7 @@ class GameView extends Component {
                 </Stage>
                 <div className={this.state.winner !== '' ? 'show modal-overlay' : 'none'}>
                     <div className="winner-overlay">{this.state.winner}</div>
-                    <LinkButton url="/">Back to Menu</LinkButton>
+                    <LinkButton url="/" onClick={this.stopFinishSound.bind(this)}>Back to Menu</LinkButton>
                     <button onClick={this.onClickRematch.bind(this)} className="link-button">Rematch</button>
                 </div>
                 {multiplayer}          

@@ -7,7 +7,7 @@ class Header extends PureComponent {
     }
 
     getFirstPlayerName() {
-        return (this.props.opponent === 'human' && this.props.player === 1 ? 'Opponent': 'Player');
+        return (this.props.opponent === 'human' && this.props.player === 1 ? 'Opponent': 'Me');
     }
 
     getSecondPlayerName() {
@@ -15,7 +15,7 @@ class Header extends PureComponent {
             return 'Computer';
         }
 
-        return (this.props.player === 0 ? 'Opponent' : 'Player');
+        return (this.props.player === 0 ? 'Opponent' : 'Me');
     }
 
     render() {
