@@ -6,9 +6,8 @@ import Ball from '../components/Ball';
 import Header from './Header';
 import LinkButton from './common/LinkButton';
 
-
 import * as constants from '../utils/constants';
-import { setTimeout } from 'timers';
+import { GATE_W } from '../utils/constants';
 
 class GameView extends Component {
     constructor(props) {
@@ -16,9 +15,10 @@ class GameView extends Component {
 
         const opponentId = props.location.hash.substr(1);
 
-        this.movesTimeout = 0;
         this.game = new Game(constants.POINTS_W, constants.POINTS_H);
         this.finishAudio = new Audio('/sounds/football_crowd.mp3');
+        this.opponentMoves = [];
+        this.weAnimate = false;
 
         this.state = {
             fieldMoves: this.getMoves(),
@@ -55,14 +55,14 @@ class GameView extends Component {
 
         for (let i = 0; i < this.game.totalVertices; i++) {
             for (let j = 0; j < this.game.totalVertices; j++) {
-                if (this.game.isPlayerMove(i, j)) {
+                if (this.game.isPlayerMove(i, j) && i < j) {
                     let linePoints = this.getPoints(i, j),
                         color = constants.MOVES_COLOR[this.game.getPlayerFromMove(i, j)];
 
                     //this.changePointsColor(i, MOVES_COLOR[playerIndex]);
                     //this.changePointsColor(j, MOVES_COLOR[playerIndex]);
         
-                    moves.push(<Line key={`move-${i}_${j}`} points={linePoints} stroke={color} strokeWidth={constants.STROKE_W}/>);
+                    moves.push(<Line id={`move-${i}_${j}`} key={`move-${i}_${j}`} points={linePoints} stroke={color} strokeWidth={constants.STROKE_W}/>);
                 }
             }
         }
@@ -114,41 +114,70 @@ class GameView extends Component {
         let circle = e.target,
             vertex = parseInt(circle.id().substr(6), 10);
 
+        if (this.weAnimate) {
+            return;
+        }
+
         if (this.game.weCanMoveTo(vertex) && this.state.player === this.game.playerTurn) {
             this.makeMoveTo(vertex);
-
-            if (this.state.opponent === 'human') {
-                this.setState({
-                    moveToSend: vertex
-                });
-            }
-
-            if (this.state.player !== this.game.playerTurn && !this.game.isGameOver) {
-                this.opponentTurn();
-            }
-        }
-    }
-
-    opponentTurn() {
-        if (this.state.opponent === 'dumb-ai') {
-            this.movesTimeout = setTimeout(this.showMoves.bind(this, this.game.getAIMoves()), 200);
         }
     }
 
     makeMoveTo(vertex) {
-        this.game.makeMoveTo(vertex);
-
+        let linePoints = this.getPoints(this.game.cVertex, vertex),
+            stage = this.refs.stage.getStage(),
+            ball = stage.find('#ballImg').rotation(0),
+            ballGroup = stage.find('#ballGroup'),
+            fieldMoves = stage.find('#fieldMoves');
+        
+        this.weAnimate = true;
         new Audio('/sounds/ball_bounce.mp3').play();
 
+        var line = new window.Konva.Line({
+            points: [linePoints[0], linePoints[1], linePoints[0], linePoints[1]],
+            stroke: constants.MOVES_COLOR[this.game.playerTurn],
+            strokeWidth: constants.STROKE_W
+        });
+
+        fieldMoves.add(line);
+
+        ballGroup.to({
+            x: linePoints[2] + GATE_W,
+            y: linePoints[3],
+            easing: window.Konva.Easings.EaseOut,
+            duration: 0.5
+        });
+
+        ball.to({
+            rotation: 360,
+            easing: window.Konva.Easings.EaseOut,
+            duration: 0.5
+        })
+
+        line.to({
+            points: linePoints,
+            easing: window.Konva.Easings.EaseOut,
+            duration: 0.5,
+            onFinish: () => {
+                line.destroy();
+                this.onCompleteMoveAnimation(vertex);
+            }           
+        })
+    }
+
+    onCompleteMoveAnimation(vertex) {
+        this.game.makeMoveTo(vertex);
         this.setState({
             fieldMoves: this.getMoves(),
             ballPosition: this.getBallPosition(vertex),
             cTurn: this.game.playerTurn
+        }, () => {
+            this.weAnimate = false;
         });
 
         if (this.game.isGameOver) {
             let winnerMsg = '';
-            
+
             if (this.game.winner === this.state.player) {
                 winnerMsg = 'You Win!';
             } else if (this.state.opponent === 'human') {
@@ -162,7 +191,18 @@ class GameView extends Component {
             });
 
             this.finishAudio.play();
-        };
+        } else {
+            if (this.state.opponent === 'human') {
+                this.setState({
+                    moveToSend: vertex
+                });
+            }
+
+            if (this.state.player !== this.game.playerTurn && this.state.opponent === 'dumb-ai') {
+                this.opponentMoves = this.game.getAIMoves();
+                this.makeMoveTo(this.opponentMoves.shift());
+            }
+        }
     }
 
     onReceivedMove(move) {
@@ -181,16 +221,6 @@ class GameView extends Component {
         this.makeMoveTo(move);
     }
 
-    showMoves(moves) {
-        let moveToVertex = moves.shift();
-
-        if (moves.length > 0 && this.game.edgeMatrix[this.game.cVertex][moveToVertex] === 0) {
-            setTimeout(this.showMoves.bind(this, moves), 200);
-        }
-
-        this.makeMoveTo(moveToVertex);
-    }
-
     getBallPosition(vertex) {
         let indices = this.game.getVertexIndices(vertex);
 
@@ -202,7 +232,7 @@ class GameView extends Component {
 
     onClickRematch() {
         this.stopFinishSound();
-        
+
         if (this.state.opponent === 'human') {
             this.setState({
                 moveToSend: 'restart'
@@ -215,8 +245,8 @@ class GameView extends Component {
     restartGame() {
         this.game.restart();
 
-        this.movesTimeout = 0;
         this.game = new Game(constants.POINTS_W, constants.POINTS_H);
+        this.opponentMoves = [];
 
         this.setState({
             fieldMoves: this.getMoves(),
@@ -239,21 +269,21 @@ class GameView extends Component {
         return (
             <div className="game">
                 <Header location={this.props.location} cTurn={this.state.cTurn} opponent={this.state.opponent} player={this.state.player}></Header>
-                <Stage width={constants.FIELD_W} height={constants.FIELD_H + 30} className="field">
+                <Stage ref="stage" width={constants.FIELD_W} height={constants.FIELD_H + 30} className="field">
                     <Layer ref="layer">
                         <Group y={15}>
                             <Group>
                                 <Line points={constants.BORDER_POINTS} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W}/>
                                 <Line points={[constants.FIELD_W / 2, 0, constants.FIELD_W / 2 , constants.FIELD_H]} stroke={constants.MAIN_COLOR} strokeWidth={constants.STROKE_W} opacity={0.3}/>
                             </Group>
-                            <Group x={constants.GATE_W}>
+                            <Group id="fieldMoves" x={constants.GATE_W}>
                                 {this.state.fieldMoves}
                             </Group>                        
                             <Group x={constants.GATE_W} 
                                 onMouseEnter = {this.onOverPoints.bind(this)} onMouseLeave = {this.onOutPoints.bind(this)} onClick = {this.onClickPoints.bind(this)}>
                                 {this.getFieldPoints()}
                             </Group>
-                            <Group x={constants.GATE_W + this.state.ballPosition.x - constants.BALL_W / 2} y={this.state.ballPosition.y - constants.BALL_W / 2}>
+                            <Group id="ballGroup" x={constants.GATE_W + this.state.ballPosition.x} y={this.state.ballPosition.y}>
                                 <Ball/>
                             </Group>
                         </Group>

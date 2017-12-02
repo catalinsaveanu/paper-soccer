@@ -18,10 +18,11 @@ class Ball extends Component{
 
     render() {
         return (
-            <Image
+            <Image id="ballImg"
                 width={BALL_W}
                 height={BALL_W}
                 image={this.state.image}
+                offset={{x: BALL_W / 2, y: BALL_W / 2}}
             />
         );
     }
